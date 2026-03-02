@@ -5,7 +5,8 @@
  * @format
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Platform } from 'react-native';
 import {
   Pressable,
   StatusBar,
@@ -15,9 +16,25 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import notifee from '@notifee/react-native';
+import { requestNotifications } from 'react-native-permissions';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+
+  useEffect(() => {
+    const setupPush = async () => {
+      if (Platform.OS === 'android') {
+        await notifee.createChannel({
+          id: 'default',
+          name: 'Default',
+          importance: 4,
+        });
+      }
+      await requestNotifications(['alert', 'sound']);
+    };
+    setupPush();
+  }, []);
 
   return (
     <SafeAreaProvider>
@@ -30,13 +47,6 @@ function App() {
 function AppContent() {
   const [count, setCount] = useState(0);
 
-  const fillArray = () => {
-    const chunks: Uint8Array[] = [];
-    while (true) {
-      chunks.push(new Uint8Array(50 * 1024 * 1024)); // 50MB each
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.titleText}>Agent Device Tester</Text>
@@ -48,8 +58,7 @@ function AppContent() {
         role="button"
         style={styles.button}
         onPress={() => {
-          setCount(count + 67);
-          fillArray();
+          setCount(current => current + 1);
         }}
       >
         <Text style={styles.buttonText}>Increment</Text>
