@@ -1,0 +1,91 @@
+name: RN Android Cloud Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      android_variant:
+        description: Android Gradle variant
+        required: true
+        default: Debug
+        type: string
+      custom_identifier:
+        description: Optional custom artifact identifier (e.g. pr-123, nightly)
+        required: false
+        default: ""
+        type: string
+      artifact_retention_days:
+        description: Artifact retention in days
+        required: true
+        default: "7"
+        type: string
+
+jobs:
+  android:
+    name: Android emulator build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.11.0
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Determine Android variant
+        id: android-variant
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "value=${{ inputs.android_variant }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=Debug" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine custom artifact identifier
+        id: custom-identifier
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "value=${{ inputs.custom_identifier }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine artifact retention
+        id: retention
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "value=${{ inputs.artifact_retention_days }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=7" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Android emulator APK
+        id: build
+        uses: ./.github/actions/rn-android-build
+        with:
+          variant: ${{ steps.android-variant.outputs.value }}
+          artifact-prefix: rn-android-emulator
+          custom-identifier: ${{ steps.custom-identifier.outputs.value }}
+          artifact-retention-days: ${{ steps.retention.outputs.value }}
+
+      - name: Publish artifact metadata
+        run: |
+          {
+            echo "## RN Android Cloud Build Artifact"
+            echo ""
+            echo "- Android emulator (.apk): name=${{ steps.build.outputs.artifact-name }}, id=${{ steps.build.outputs.artifact-id }}"
+            echo ""
+            echo "Artifact URL (auth required):"
+            echo "- Android: ${{ steps.build.outputs.artifact-url }}"
+          } >> "$GITHUB_STEP_SUMMARY"
