@@ -34,7 +34,7 @@ on:
 jobs:
   ios:
     name: iOS simulator build
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 45
     outputs:
       artifact_name: ${{ steps.build.outputs.artifact-name }}
