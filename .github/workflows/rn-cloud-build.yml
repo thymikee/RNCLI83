@@ -1,6 +1,7 @@
 name: RN Cloud Build
 
 on:
+  push:
   pull_request:
   workflow_dispatch:
     inputs:
