@@ -1,5 +1,5 @@
-name: React Native iOS Simulator Build
-description: Build React Native iOS simulator app in GitHub Actions and upload artifact
+name: iOS Build
+description: Build iOS simulator app and upload artifact
 
 inputs:
   working-directory:

@@ -1,5 +1,5 @@
-name: React Native Android Emulator Build
-description: Build React Native Android emulator APK in GitHub Actions and upload artifact
+name: Android Build
+description: Build Android emulator APK and upload artifact
 
 inputs:
   working-directory:

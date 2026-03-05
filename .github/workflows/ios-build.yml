@@ -1,12 +1,17 @@
-name: RN Android Cloud Build
+name: iOS Build
 
 on:
   push:
   pull_request:
   workflow_dispatch:
     inputs:
-      android_variant:
-        description: Android Gradle variant
+      ios_scheme:
+        description: iOS Xcode scheme
+        required: true
+        default: RNCLI83
+        type: string
+      ios_configuration:
+        description: iOS configuration
         required: true
         default: Debug
         type: string
@@ -22,18 +27,12 @@ on:
         type: string
 
 jobs:
-  android:
-    name: Android emulator build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+  ios:
+    name: iOS simulator build
+    runs-on: macos-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
 
       - uses: actions/setup-node@v4
         with:
@@ -43,13 +42,30 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
-      - name: Determine Android variant
-        id: android-variant
+      - name: Install CocoaPods dependencies
+        run: |
+          set -euo pipefail
+          CONFIG_JSON="$(npx react-native config)"
+          IOS_SOURCE_DIR="$(printf '%s' "$CONFIG_JSON" | node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(j.project?.ios?.sourceDir || 'ios')")"
+          cd "$IOS_SOURCE_DIR"
+          pod install --repo-update
+
+      - name: Determine iOS config
+        id: ios-config
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "value=${{ inputs.android_variant }}" >> "$GITHUB_OUTPUT"
+            echo "value=${{ inputs.ios_configuration }}" >> "$GITHUB_OUTPUT"
           else
             echo "value=Debug" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine iOS scheme
+        id: ios-scheme
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "value=${{ inputs.ios_scheme }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=RNCLI83" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Determine custom artifact identifier
@@ -70,22 +86,23 @@ jobs:
             echo "value=7" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build Android emulator APK
+      - name: Build iOS simulator
         id: build
-        uses: ./.github/actions/rn-android-build
+        uses: ./.github/actions/github-actions-react-native-build-artifacts/ios-build
         with:
-          variant: ${{ steps.android-variant.outputs.value }}
-          artifact-prefix: rn-android-emulator
+          scheme: ${{ steps.ios-scheme.outputs.value }}
+          configuration: ${{ steps.ios-config.outputs.value }}
+          artifact-prefix: rn-ios-simulator
           custom-identifier: ${{ steps.custom-identifier.outputs.value }}
           artifact-retention-days: ${{ steps.retention.outputs.value }}
 
       - name: Publish artifact metadata
         run: |
           {
-            echo "## RN Android Cloud Build Artifact"
+            echo "## iOS Build Artifact"
             echo ""
-            echo "- Android emulator (.apk): name=${{ steps.build.outputs.artifact-name }}, id=${{ steps.build.outputs.artifact-id }}"
+            echo "- iOS simulator (.app.tar.gz): name=${{ steps.build.outputs.artifact-name }}, id=${{ steps.build.outputs.artifact-id }}"
             echo ""
             echo "Artifact URL (auth required):"
-            echo "- Android: ${{ steps.build.outputs.artifact-url }}"
+            echo "- iOS: ${{ steps.build.outputs.artifact-url }}"
           } >> "$GITHUB_STEP_SUMMARY"
