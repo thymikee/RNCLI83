@@ -50,16 +50,13 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
       - name: Install CocoaPods dependencies
         run: |
           set -euo pipefail
           CONFIG_JSON="$(npx react-native config)"
           IOS_SOURCE_DIR="$(printf '%s' "$CONFIG_JSON" | node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(j.project?.ios?.sourceDir || 'ios')")"
-          bundle exec pod install --project-directory="$IOS_SOURCE_DIR" --repo-update
+          cd "$IOS_SOURCE_DIR"
+          pod install --repo-update
 
       - name: Determine iOS config
         id: ios-config
