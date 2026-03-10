@@ -58,7 +58,7 @@ function AppContent() {
         role="button"
         style={styles.button}
         onPress={() => {
-          setCount(current => current + 1);
+          setCount(current => current + 2);
         }}
       >
         <Text style={styles.buttonText}>Increment</Text>
