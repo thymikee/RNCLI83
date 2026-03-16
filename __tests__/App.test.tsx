@@ -3,7 +3,10 @@
  */
 
 jest.mock('@notifee/react-native', () => ({
-  createChannel: jest.fn(() => Promise.resolve()),
+  __esModule: true,
+  default: {
+    createChannel: jest.fn(() => Promise.resolve()),
+  },
 }));
 
 jest.mock('react-native-permissions', () => ({
