@@ -44,6 +44,8 @@ function App() {
   );
 }
 
+const INCREMENT_STEP = 2;
+
 function AppContent() {
   const [count, setCount] = useState(0);
 
@@ -58,7 +60,7 @@ function AppContent() {
         role="button"
         style={styles.button}
         onPress={() => {
-          setCount(current => current + 2);
+          setCount(current => current + INCREMENT_STEP);
         }}
       >
         <Text style={styles.buttonText}>Increment</Text>
