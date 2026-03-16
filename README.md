@@ -82,6 +82,15 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
+## Counter Behavior
+
+The sample app now features an "Increment" button that increases the counter by **2** with each tap, mirroring the desired 0 → 2 → 4 … progression. Use the following steps to verify the behavior in a simulator or on device:
+
+1. Launch the app with `npm run android` or `npm run ios` depending on the platform.
+2. Accept any notification permission prompts that appear.
+3. Tap the "Increment" button multiple times and confirm the count jumps by two each tap.
+4. Capture a screenshot of the counter after stepping through 0 → 2 → 4 to archive the behavior change.
+
 # Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
