@@ -1,3 +1,5 @@
+/* eslint-env jest */
+
 const mockNotifee = {
   createChannel: jest.fn(() => Promise.resolve({ id: 'default' })),
   displayNotification: jest.fn(() => Promise.resolve()),
