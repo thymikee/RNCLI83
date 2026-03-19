@@ -19,8 +19,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import notifee from '@notifee/react-native';
 import { requestNotifications } from 'react-native-permissions';
 
-// Descriptive increment step for the Increment button
-const INCREMENT_STEP = 5;
+export const INCREMENT_STEP = 5;
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
