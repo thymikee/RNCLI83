@@ -58,7 +58,8 @@ function AppContent() {
         role="button"
         style={styles.button}
         onPress={() => {
-          setCount(current => current + 1);
+          // Increment the counter by 5 per click
+          setCount(current => current + 5);
         }}
       >
         <Text style={styles.buttonText}>Increment</Text>
