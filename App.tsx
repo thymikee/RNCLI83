@@ -46,6 +46,7 @@ function App() {
 
 function AppContent() {
   const [count, setCount] = useState(0);
+  const INCREMENT_STEP = 5;
 
   return (
     <View style={styles.container}>
@@ -53,12 +54,13 @@ function AppContent() {
       <Text style={styles.descriptionText}>
         This is a tester for the Agent Device app.
       </Text>
-      <Text style={styles.countText}>{count}</Text>
+      <Text testID="count" style={styles.countText}>{count}</Text>
       <Pressable
         role="button"
+        testID="increment-button"
         style={styles.button}
         onPress={() => {
-          setCount(current => current + 1);
+          setCount(current => current + INCREMENT_STEP);
         }}
       >
         <Text style={styles.buttonText}>Increment</Text>
