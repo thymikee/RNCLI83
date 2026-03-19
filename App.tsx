@@ -19,6 +19,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import notifee from '@notifee/react-native';
 import { requestNotifications } from 'react-native-permissions';
 
+// Descriptive increment step for the Increment button
+const INCREMENT_STEP = 5;
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -58,7 +61,7 @@ function AppContent() {
         role="button"
         style={styles.button}
         onPress={() => {
-          setCount(current => current + 1);
+          setCount(current => current + INCREMENT_STEP);
         }}
       >
         <Text style={styles.buttonText}>Increment</Text>
