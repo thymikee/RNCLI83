@@ -2,6 +2,8 @@ name: iOS Build
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
     inputs:
@@ -18,19 +20,40 @@ on:
       custom_identifier:
         description: Optional custom artifact identifier (e.g. pr-123, nightly)
         required: false
-        default: ""
+        default: ''
         type: string
       artifact_retention_days:
         description: Artifact retention in days
         required: true
-        default: "7"
+        default: '7'
         type: string
+      run_cali_qa:
+        description: Run Cali QA after the build
+        required: true
+        default: false
+        type: boolean
+      qa_prompt:
+        description: Optional Cali QA focus prompt
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+env:
+  DEFAULT_QA_PROMPT: Run a lightweight smoke test of app launch and the primary visible flow. Report blockers clearly and capture screenshots for meaningful states.
 
 jobs:
   ios:
     name: iOS simulator build
     runs-on: macos-latest
     timeout-minutes: 45
+    outputs:
+      artifact-name: ${{ steps.build.outputs.artifact-name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -106,3 +129,158 @@ jobs:
             echo "Artifact URL (auth required):"
             echo "- iOS: ${{ steps.build.outputs.artifact-url }}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  ios-qa:
+    name: iOS Cali QA
+    needs: ios
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && inputs.run_cali_qa == true)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.11.0
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Install agent-device
+        run: npm install -g agent-device@0.11.9
+
+      - name: Resolve QA prompt
+        id: qa-prompt
+        env:
+          INPUT_QA_PROMPT: ${{ inputs.qa_prompt }}
+        run: |
+          PROMPT="${INPUT_QA_PROMPT:-$DEFAULT_QA_PROMPT}"
+          echo "value=$PROMPT" >> "$GITHUB_OUTPUT"
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ needs.ios.outputs.artifact-name }}
+          path: ./.cali/downloaded
+
+      - name: Prepare iOS artifact
+        id: artifact
+        run: |
+          set -euo pipefail
+
+          mkdir -p ./.cali/input
+          APP_TARBALL="$(find ./.cali/downloaded -type f -name '*.app.tar.gz' | sort | head -n1 || true)"
+          if [[ -z "$APP_TARBALL" ]]; then
+            echo "No iOS .app.tar.gz artifact found in ./.cali/downloaded"
+            exit 1
+          fi
+
+          tar -xzf "$APP_TARBALL" -C ./.cali/input
+
+          APP_PATH="$(find ./.cali/input -type d -name '*.app' | sort | head -n1 || true)"
+          if [[ -z "$APP_PATH" ]]; then
+            echo "No unpacked .app bundle found after extracting $APP_TARBALL"
+            exit 1
+          fi
+
+          echo "path=$APP_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve iOS simulator
+        id: simulator
+        run: |
+          node <<'NODE' >> "$GITHUB_OUTPUT"
+          const { execFileSync } = require('node:child_process')
+
+          const raw = execFileSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], {
+            encoding: 'utf8',
+          })
+          const devices = JSON.parse(raw).devices ?? {}
+
+          let selected
+          for (const runtimeDevices of Object.values(devices)) {
+            for (const device of runtimeDevices) {
+              if (
+                device?.isAvailable &&
+                typeof device.name === 'string' &&
+                device.name.startsWith('iPhone')
+              ) {
+                selected = device
+                break
+              }
+            }
+
+            if (selected) {
+              break
+            }
+          }
+
+          if (!selected) {
+            throw new Error('No available iPhone simulator was found on the runner.')
+          }
+
+          console.log(`device_udid=${selected.udid}`)
+          console.log(`device_name=${selected.name}`)
+          NODE
+
+      - name: Boot iOS simulator
+        run: |
+          set -euo pipefail
+
+          xcrun simctl boot "${{ steps.simulator.outputs.device_udid }}" || true
+          open -a Simulator --args -CurrentDeviceUDID "${{ steps.simulator.outputs.device_udid }}"
+          xcrun simctl bootstatus "${{ steps.simulator.outputs.device_udid }}" -b
+          agent-device devices --platform ios
+
+      - name: Run Cali QA
+        id: cali
+        continue-on-error: true
+        env:
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          AI_GATEWAY_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          QA_MODEL: ${{ vars.QA_MODEL || 'openai/gpt-5.4-mini' }}
+        run: |
+          bash ./scripts/ci/run-cali-qa.sh \
+            ios \
+            "${{ steps.artifact.outputs.path }}" \
+            "${{ steps.qa-prompt.outputs.value }}"
+
+      - name: Append QA summary
+        if: always() && hashFiles('artifacts/qa/section.md') != ''
+        run: cat ./artifacts/qa/section.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload QA artifacts
+        if: always() && hashFiles('artifacts/qa/report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: cali-qa-ios-${{ github.run_id }}
+          path: ./artifacts/qa
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upsert PR comment
+        if: always() && github.event_name == 'pull_request' && hashFiles('artifacts/qa/comment-github.md') != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node ./scripts/ci/upsert-cali-pr-comment.mjs --platform ios --comment ./artifacts/qa/comment-github.md
+
+      - name: Enforce QA status
+        if: always()
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f ./artifacts/qa/status.txt ]]; then
+            echo "Cali QA did not produce artifacts/qa/status.txt"
+            exit 1
+          fi
+
+          STATUS="$(cat ./artifacts/qa/status.txt)"
+          echo "Cali QA status: $STATUS"
+          if [[ "$STATUS" != "passed" ]]; then
+            exit 1
+          fi

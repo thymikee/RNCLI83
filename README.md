@@ -2,7 +2,7 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 
 ## Cali QA
 
-The repo now includes a `cali`-based QA workflow that reuses artifacts from the existing `Android Build` and `iOS Build` GitHub Actions workflows.
+The repo now includes `cali`-based QA jobs inside the existing Android and iOS GitHub Actions build workflows, so each platform build is reused instead of triggering a second workflow run.
 
 See [`docs/cali-qa.md`](./docs/cali-qa.md) for the workflow behavior, required secrets, manual dispatch inputs, and the current Cali gaps we had to work around.
 
