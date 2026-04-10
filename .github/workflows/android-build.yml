@@ -183,9 +183,8 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         env:
           AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
-          AI_GATEWAY_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          CLAUDE_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_AUTH_TOKEN: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           QA_MODEL: ${{ vars.QA_MODEL || 'openai/gpt-5.4-mini' }}
           QA_ARTIFACT_PATH: ${{ steps.artifact.outputs.path }}
@@ -200,8 +199,13 @@ jobs:
             bash -lc '
               set -euo pipefail
               agent-device devices --platform android
-              bash ./scripts/ci/run-cali-qa.sh android "$QA_ARTIFACT_PATH" "$QA_PROMPT_VALUE"
+              npx cali qa --ci github-actions --quiet --platform android --artifact "$QA_ARTIFACT_PATH" --prompt "$QA_PROMPT_VALUE"
             '
+
+      - name: Export CI outputs
+        if: always() && hashFiles('artifacts/qa/report.json') != ''
+        run: |
+          npx cali export-ci --quiet --report ./artifacts/qa/report.json
 
       - name: Append QA summary
         if: always() && hashFiles('artifacts/qa/section.md') != ''
@@ -217,10 +221,12 @@ jobs:
           retention-days: 7
 
       - name: Upsert PR comment
-        if: always() && github.event_name == 'pull_request' && hashFiles('artifacts/qa/comment-github.md') != ''
+        if: always() && github.event_name == 'pull_request' && hashFiles('artifacts/qa/ci-comment.md') != ''
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node ./scripts/ci/upsert-cali-pr-comment.mjs --platform android --comment ./artifacts/qa/comment-github.md
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body-file ./artifacts/qa/ci-comment.md
 
       - name: Enforce QA status
         if: always()
