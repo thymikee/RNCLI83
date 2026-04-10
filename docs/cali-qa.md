@@ -36,7 +36,7 @@ Optional repository variable:
 Each QA job installs both:
 
 - the `agent-device` CLI
-- the Codex `agent-device` skill with `npx skills add callstackincubator/agent-device --agent codex --skill agent-device -y`
+- the `agent-device` skill with `npx skills add callstackincubator/agent-device --skill agent-device -y`
 
 ## Manual runs
 

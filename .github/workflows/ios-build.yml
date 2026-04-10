@@ -154,7 +154,7 @@ jobs:
 
       - name: Install Cali skills
         run: |
-          npx skills add callstackincubator/agent-device --agent codex --skill agent-device -y
+          npx skills add callstackincubator/agent-device --skill agent-device -y
 
       - name: Reset agent-device state
         run: |
