@@ -7,6 +7,7 @@ This project runs `cali qa` directly inside the existing `.github/workflows/andr
 - builds once per platform, then reuses that uploaded artifact in a follow-up QA job inside the same workflow run
 - runs Cali QA automatically on `pull_request`
 - supports manual `workflow_dispatch` runs with optional QA enabled via `run_cali_qa`
+- installs the required Codex `agent-device` skill on the runner before QA starts
 - runs `npx cali qa --ci github-actions --platform <android|ios> --artifact <path>`
 - runs `npx cali export-ci --report ./artifacts/qa/report.json`
 - uploads the generated `./artifacts/qa` folder
@@ -29,6 +30,13 @@ Optional repository variable:
 
 - `QA_MODEL`
   If omitted, Cali falls back to its default model.
+
+## Required runner setup
+
+Each QA job installs both:
+
+- the `agent-device` CLI
+- the Codex `agent-device` skill with `npx skills add callstackincubator/agent-device --agent codex --skill agent-device -y`
 
 ## Manual runs
 
