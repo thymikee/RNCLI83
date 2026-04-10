@@ -152,6 +152,10 @@ jobs:
       - name: Install agent-device
         run: npm install -g agent-device@0.11.9
 
+      - name: Reset agent-device state
+        run: |
+          rm -f "${HOME}/.agent-device/daemon.json" "${HOME}/.agent-device/daemon.sock"
+
       - name: Resolve QA prompt
         id: qa-prompt
         env:
