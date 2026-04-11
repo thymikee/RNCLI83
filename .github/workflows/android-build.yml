@@ -40,7 +40,7 @@ permissions:
   pull-requests: write
 
 env:
-  DEFAULT_QA_PROMPT: Run a lightweight smoke test of app launch and the primary counter flow. If standard OS permission prompts appear, choose the option that allows continuing into the app, then continue testing. Verify the counter screen is visible and tap Increment once if available. If launch and this primary smoke interaction work without blockers, report passed; do not mark unsure just because the PR changes are CI-only or the smoke scope is intentionally limited. Report blockers clearly and capture screenshots for meaningful states.
+  DEFAULT_QA_PROMPT: Run a lightweight smoke test of app launch and the primary counter flow. If standard OS permission prompts appear, choose the option that allows continuing into the app, then continue testing. The expected app screen is titled Agent Device Tester and includes a numeric count plus an Increment button. Verify that screen is visible and tap Increment once if available. If launch and this primary smoke interaction work without blockers, report passed; do not mark unsure just because the PR changes are CI-only or the smoke scope is intentionally limited. Report blockers clearly and capture screenshots for meaningful states.
 
 jobs:
   android:
@@ -193,6 +193,7 @@ jobs:
           QA_MODEL: ${{ vars.QA_MODEL || 'openai/gpt-5.4-mini' }}
           QA_ARTIFACT_PATH: ${{ steps.artifact.outputs.path }}
           QA_PROMPT_VALUE: ${{ steps.qa-prompt.outputs.value }}
+          QA_APP_ID: com.rncli83
         with:
           api-level: 35
           arch: x86_64
@@ -200,7 +201,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
           script: |
-            bash ./scripts/ci/run-cali-qa-with-metro.sh android "$QA_ARTIFACT_PATH" "$QA_PROMPT_VALUE"
+            bash ./scripts/ci/run-cali-qa-with-metro.sh android "$QA_ARTIFACT_PATH" "$QA_PROMPT_VALUE" "$QA_APP_ID"
 
       - name: Export CI outputs
         if: always() && hashFiles('artifacts/qa/report.json') != ''

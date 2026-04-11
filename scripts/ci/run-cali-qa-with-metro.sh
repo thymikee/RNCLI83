@@ -5,6 +5,7 @@ set -euo pipefail
 PLATFORM="${1:?PLATFORM argument is required}"
 ARTIFACT_PATH="${2:?ARTIFACT_PATH argument is required}"
 QA_PROMPT="${3:-}"
+APP_ID="${4:-}"
 METRO_PORT="${METRO_PORT:-8081}"
 METRO_LOG="${METRO_LOG:-artifacts/qa/metro.log}"
 METRO_READY_TIMEOUT_SECONDS="${METRO_READY_TIMEOUT_SECONDS:-60}"
@@ -59,5 +60,9 @@ cali_args=(
   --artifact "$ARTIFACT_PATH"
   --prompt "$QA_PROMPT"
 )
+
+if [[ -n "$APP_ID" ]]; then
+  cali_args+=(--app-id "$APP_ID")
+fi
 
 npx cali qa "${cali_args[@]}"
