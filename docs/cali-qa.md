@@ -10,7 +10,7 @@ This project runs `cali qa` directly inside the existing `.github/workflows/andr
 - installs the required `agent-device` skill on the runner before QA starts
 - starts Metro with `npm start` before `cali qa` and lets GitHub Actions clean it up at job completion
 - forwards Android emulator traffic to Metro with `adb reverse`
-- passes the selected iOS simulator name to Cali so QA stays pinned to the booted target
+- boots the iOS simulator in the workflow before QA and avoids passing `--device` so Cali does not run simulator provisioning
 - runs `npx cali qa --ci github-actions --platform <android|ios> --artifact <path>`
 - runs `npx cali export-ci --report ./artifacts/qa/report.json`
 - uploads the generated `./artifacts/qa` folder
