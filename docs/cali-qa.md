@@ -12,7 +12,7 @@ This project runs `cali qa` directly inside the existing `.github/workflows/andr
 - runs `npx cali qa --ci github-actions --platform <android|ios> --artifact <path>`
 - runs `npx cali export-ci --report ./artifacts/qa/report.json`
 - uploads the generated `./artifacts/qa` folder
-- posts `./artifacts/qa/ci-comment.md` to the pull request on PR-triggered runs
+- creates or updates a marker-based pull request comment from `./artifacts/qa/ci-comment.md`
 
 ## Required secrets
 

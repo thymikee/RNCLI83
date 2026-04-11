@@ -226,7 +226,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          gh pr comment "$PR_NUMBER" --body-file ./artifacts/qa/ci-comment.md
+          node ./scripts/ci/upsert-github-pr-comment.mjs \
+            --pr "$PR_NUMBER" \
+            --comment ./artifacts/qa/ci-comment.md \
+            --marker cali-qa:android \
+            --fallback-heading "### Android QA"
 
       - name: Enforce QA status
         if: always()
