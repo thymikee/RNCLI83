@@ -1,5 +1,11 @@
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
+## Cali QA
+
+The repo now includes `cali`-based QA jobs inside the existing Android and iOS GitHub Actions build workflows, so each platform build is reused instead of triggering a second workflow run. The workflows call `cali qa --ci github-actions` directly and export PR-ready comment output with `cali export-ci`.
+
+See [`docs/cali-qa.md`](./docs/cali-qa.md) for the workflow behavior, required secrets, manual dispatch inputs, and the CI outputs the workflows consume.
+
 # Getting Started
 
 > **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
