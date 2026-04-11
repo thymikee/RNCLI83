@@ -40,7 +40,7 @@ permissions:
   pull-requests: write
 
 env:
-  DEFAULT_QA_PROMPT: Run a lightweight smoke test of app launch and the primary visible flow. If standard OS permission prompts appear, choose the option that allows continuing into the app, then continue testing. Report blockers clearly and capture screenshots for meaningful states.
+  DEFAULT_QA_PROMPT: Run a lightweight smoke test of app launch and the primary counter flow. If standard OS permission prompts appear, choose the option that allows continuing into the app, then continue testing. Verify the counter screen is visible and tap Increment once if available. If launch and this primary smoke interaction work without blockers, report passed; do not mark unsure just because the PR changes are CI-only or the smoke scope is intentionally limited. Report blockers clearly and capture screenshots for meaningful states.
 
 jobs:
   android:
