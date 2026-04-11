@@ -45,7 +45,7 @@ permissions:
   pull-requests: write
 
 env:
-  DEFAULT_QA_PROMPT: Run a lightweight smoke test of app launch and the primary visible flow. Report blockers clearly and capture screenshots for meaningful states.
+  DEFAULT_QA_PROMPT: Run a lightweight smoke test of app launch and the primary visible flow. If standard OS permission prompts appear, choose the option that allows continuing into the app, then continue testing. Report blockers clearly and capture screenshots for meaningful states.
 
 jobs:
   ios:
