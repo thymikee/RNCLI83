@@ -246,7 +246,8 @@ jobs:
           bash ./scripts/ci/run-cali-qa-with-metro.sh \
             ios \
             "${{ steps.artifact.outputs.path }}" \
-            "${{ steps.qa-prompt.outputs.value }}"
+            "${{ steps.qa-prompt.outputs.value }}" \
+            "${{ steps.simulator.outputs.device_name }}"
 
       - name: Export CI outputs
         if: always() && hashFiles('artifacts/qa/report.json') != ''
