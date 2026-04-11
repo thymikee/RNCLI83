@@ -160,14 +160,6 @@ jobs:
         run: |
           rm -f "${HOME}/.agent-device/daemon.json" "${HOME}/.agent-device/daemon.sock"
 
-      - name: Resolve QA prompt
-        id: qa-prompt
-        env:
-          INPUT_QA_PROMPT: ${{ inputs.qa_prompt }}
-        run: |
-          PROMPT="${INPUT_QA_PROMPT:-$DEFAULT_QA_PROMPT}"
-          echo "value=$PROMPT" >> "$GITHUB_OUTPUT"
-
       - name: Download build artifact
         uses: actions/download-artifact@v5
         with:
@@ -241,12 +233,13 @@ jobs:
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           QA_MODEL: ${{ vars.QA_MODEL || 'openai/gpt-5.4-mini' }}
+          QA_PROMPT_VALUE: ${{ inputs.qa_prompt || env.DEFAULT_QA_PROMPT }}
           QA_APP_ID: org.reactjs.native.example.RNCLI83
         run: |
           bash ./scripts/ci/run-cali-qa-with-metro.sh \
             ios \
             "${{ steps.artifact.outputs.path }}" \
-            "${{ steps.qa-prompt.outputs.value }}" \
+            "$QA_PROMPT_VALUE" \
             "$QA_APP_ID"
 
       - name: Export CI outputs

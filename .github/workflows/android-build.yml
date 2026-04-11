@@ -148,14 +148,6 @@ jobs:
         run: |
           rm -f "${HOME}/.agent-device/daemon.json" "${HOME}/.agent-device/daemon.sock"
 
-      - name: Resolve QA prompt
-        id: qa-prompt
-        env:
-          INPUT_QA_PROMPT: ${{ inputs.qa_prompt }}
-        run: |
-          PROMPT="${INPUT_QA_PROMPT:-$DEFAULT_QA_PROMPT}"
-          echo "value=$PROMPT" >> "$GITHUB_OUTPUT"
-
       - name: Download build artifact
         uses: actions/download-artifact@v5
         with:
@@ -192,7 +184,7 @@ jobs:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           QA_MODEL: ${{ vars.QA_MODEL || 'openai/gpt-5.4-mini' }}
           QA_ARTIFACT_PATH: ${{ steps.artifact.outputs.path }}
-          QA_PROMPT_VALUE: ${{ steps.qa-prompt.outputs.value }}
+          QA_PROMPT_VALUE: ${{ inputs.qa_prompt || env.DEFAULT_QA_PROMPT }}
           QA_APP_ID: com.rncli83
         with:
           api-level: 35
