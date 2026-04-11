@@ -8,8 +8,19 @@ QA_PROMPT="${3:-}"
 METRO_PORT="${METRO_PORT:-8081}"
 METRO_LOG="${METRO_LOG:-artifacts/qa/metro.log}"
 METRO_READY_TIMEOUT_SECONDS="${METRO_READY_TIMEOUT_SECONDS:-60}"
+METRO_BUNDLE_TIMEOUT_SECONDS="${METRO_BUNDLE_TIMEOUT_SECONDS:-120}"
 
 mkdir -p artifacts/qa
+
+preload_metro_bundle() {
+  local bundle_url="http://127.0.0.1:${METRO_PORT}/index.bundle?platform=${PLATFORM}&dev=true&minify=false"
+
+  if ! curl --silent --fail --show-error --max-time "$METRO_BUNDLE_TIMEOUT_SECONDS" --output /dev/null "$bundle_url"; then
+    echo "Metro failed to prebuild the ${PLATFORM} bundle within ${METRO_BUNDLE_TIMEOUT_SECONDS} seconds."
+    tail -200 "$METRO_LOG" || true
+    return 1
+  fi
+}
 
 list_agent_devices() {
   local attempt
@@ -48,6 +59,8 @@ if [[ "$METRO_READY" != "1" ]]; then
   tail -200 "$METRO_LOG" || true
   exit 1
 fi
+
+preload_metro_bundle
 
 if [[ "$PLATFORM" == "android" ]]; then
   adb wait-for-device
