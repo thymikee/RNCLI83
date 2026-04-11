@@ -37,6 +37,18 @@ fi
 if [[ "$PLATFORM" == "android" ]]; then
   adb wait-for-device
   adb reverse "tcp:${METRO_PORT}" "tcp:${METRO_PORT}"
+  adb shell wm dismiss-keyguard >/dev/null 2>&1 || true
+  adb shell cmd statusbar collapse >/dev/null 2>&1 || true
+
+  for package_name in \
+    com.google.android.apps.nexuslauncher \
+    com.android.launcher3 \
+    com.android.launcher \
+    com.android.quickstep; do
+    adb shell am force-stop "$package_name" >/dev/null 2>&1 || true
+  done
+
+  sleep "${ANDROID_DEVICE_STABILIZATION_SECONDS:-5}"
 fi
 
 agent-device devices --platform "$PLATFORM"
