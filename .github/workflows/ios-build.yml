@@ -268,14 +268,30 @@ jobs:
       - name: Upsert PR comment
         if: always() && github.event_name == 'pull_request' && hashFiles('artifacts/qa/ci-comment.md') != ''
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMENT_MARKER: '<!-- cali-qa:ios -->'
         run: |
-          node ./scripts/ci/upsert-github-pr-comment.mjs \
-            --pr "$PR_NUMBER" \
-            --comment ./artifacts/qa/ci-comment.md \
-            --marker cali-qa:ios \
-            --fallback-heading "### iOS QA"
+          set -euo pipefail
+
+          COMMENT_BODY="$(mktemp)"
+          {
+            echo "$COMMENT_MARKER"
+            cat ./artifacts/qa/ci-comment.md
+          } > "$COMMENT_BODY"
+
+          COMMENT_ID="$(
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --paginate \
+              --jq ".[] | select((.body // \"\") | contains(\"${COMMENT_MARKER}\")) | .id" \
+              | head -n1
+          )"
+
+          if [[ -n "$COMMENT_ID" ]]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}" -F "body=@${COMMENT_BODY}" --silent
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -F "body=@${COMMENT_BODY}" --silent
+          fi
 
       - name: Enforce QA status
         if: always()
