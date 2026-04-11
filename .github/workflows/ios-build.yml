@@ -231,7 +231,6 @@ jobs:
           xcrun simctl boot "${{ steps.simulator.outputs.device_udid }}" || true
           open -a Simulator --args -CurrentDeviceUDID "${{ steps.simulator.outputs.device_udid }}"
           xcrun simctl bootstatus "${{ steps.simulator.outputs.device_udid }}" -b
-          agent-device devices --platform ios
 
       - name: Run Cali QA
         id: cali

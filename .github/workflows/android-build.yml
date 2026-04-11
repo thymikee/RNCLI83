@@ -195,7 +195,6 @@ jobs:
           QA_PROMPT_VALUE: ${{ steps.qa-prompt.outputs.value }}
         with:
           api-level: 35
-          target: aosp_atd
           arch: x86_64
           profile: pixel_7
           disable-animations: true

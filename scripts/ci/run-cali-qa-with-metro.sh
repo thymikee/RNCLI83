@@ -11,6 +11,21 @@ METRO_READY_TIMEOUT_SECONDS="${METRO_READY_TIMEOUT_SECONDS:-60}"
 
 mkdir -p artifacts/qa
 
+list_agent_devices() {
+  local attempt
+
+  for attempt in 1 2; do
+    if agent-device devices --platform "$PLATFORM"; then
+      return 0
+    fi
+
+    rm -f "${HOME}/.agent-device/daemon.json" "${HOME}/.agent-device/daemon.sock"
+    sleep 5
+  done
+
+  agent-device devices --platform "$PLATFORM" --debug
+}
+
 npm start -- --port "$METRO_PORT" >"$METRO_LOG" 2>&1 &
 METRO_PID=$!
 
@@ -51,7 +66,7 @@ if [[ "$PLATFORM" == "android" ]]; then
   sleep "${ANDROID_DEVICE_STABILIZATION_SECONDS:-5}"
 fi
 
-agent-device devices --platform "$PLATFORM"
+list_agent_devices
 cali_args=(
   --ci github-actions
   --quiet
