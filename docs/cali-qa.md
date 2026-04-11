@@ -8,7 +8,7 @@ This project runs `cali qa` directly inside the existing `.github/workflows/andr
 - runs Cali QA automatically on `pull_request`
 - supports manual `workflow_dispatch` runs with optional QA enabled via `run_cali_qa`
 - installs the required `agent-device` skill on the runner before QA starts
-- starts Metro before `cali qa` and stops it when QA finishes or fails
+- starts Metro with `npm start` before `cali qa` and lets GitHub Actions clean it up at job completion
 - runs `npx cali qa --ci github-actions --platform <android|ios> --artifact <path>`
 - runs `npx cali export-ci --report ./artifacts/qa/report.json`
 - uploads the generated `./artifacts/qa` folder

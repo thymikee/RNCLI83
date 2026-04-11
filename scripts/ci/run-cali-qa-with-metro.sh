@@ -11,16 +11,8 @@ METRO_READY_TIMEOUT_SECONDS="${METRO_READY_TIMEOUT_SECONDS:-60}"
 
 mkdir -p artifacts/qa
 
-npx react-native start --port "$METRO_PORT" >"$METRO_LOG" 2>&1 &
+npm start -- --port "$METRO_PORT" >"$METRO_LOG" 2>&1 &
 METRO_PID=$!
-
-cleanup_metro() {
-  if kill -0 "$METRO_PID" 2>/dev/null; then
-    kill "$METRO_PID" 2>/dev/null || true
-    wait "$METRO_PID" 2>/dev/null || true
-  fi
-}
-trap cleanup_metro EXIT
 
 METRO_READY=0
 for _ in $(seq 1 "$METRO_READY_TIMEOUT_SECONDS"); do
