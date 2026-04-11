@@ -22,21 +22,6 @@ preload_metro_bundle() {
   fi
 }
 
-list_agent_devices() {
-  local attempt
-
-  for attempt in 1 2; do
-    if agent-device devices --platform "$PLATFORM"; then
-      return 0
-    fi
-
-    rm -f "${HOME}/.agent-device/daemon.json" "${HOME}/.agent-device/daemon.sock"
-    sleep 5
-  done
-
-  agent-device devices --platform "$PLATFORM" --debug
-}
-
 npm start -- --port "$METRO_PORT" >"$METRO_LOG" 2>&1 &
 METRO_PID=$!
 
@@ -65,21 +50,8 @@ preload_metro_bundle
 if [[ "$PLATFORM" == "android" ]]; then
   adb wait-for-device
   adb reverse "tcp:${METRO_PORT}" "tcp:${METRO_PORT}"
-  adb shell wm dismiss-keyguard >/dev/null 2>&1 || true
-  adb shell cmd statusbar collapse >/dev/null 2>&1 || true
-
-  for package_name in \
-    com.google.android.apps.nexuslauncher \
-    com.android.launcher3 \
-    com.android.launcher \
-    com.android.quickstep; do
-    adb shell am force-stop "$package_name" >/dev/null 2>&1 || true
-  done
-
-  sleep "${ANDROID_DEVICE_STABILIZATION_SECONDS:-5}"
 fi
 
-list_agent_devices
 cali_args=(
   --ci github-actions
   --quiet
