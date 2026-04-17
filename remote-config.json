@@ -1,0 +1,10 @@
+{
+  "daemonBaseUrl": "https://bridge.agent-device.dev/agent-device",
+  "daemonTransport": "http",
+  "tenant": "micha-pierzcha-a",
+  "runId": "demo-run-001",
+  "sessionIsolation": "tenant",
+  "metroKind": "auto",
+  "metroPublicBaseUrl": "http://127.0.0.1:8081",
+  "metroProxyBaseUrl": "https://bridge.agent-device.dev"
+}
