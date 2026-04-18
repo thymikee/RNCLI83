@@ -1,7 +1,7 @@
 {
   "daemonBaseUrl": "https://bridge.agent-device.dev/agent-device",
   "daemonTransport": "http",
-  "tenant": "callstack-test",
+  "tenant": "micha-pierzcha-a",
   "runId": "demo-run-001",
   "sessionIsolation": "tenant",
   "metroKind": "auto",
