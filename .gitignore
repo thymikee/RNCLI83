@@ -76,3 +76,6 @@ yarn-error.log
 
 .vercel
 .env*.local
+
+# agent-device local session state
+.agent-device/
