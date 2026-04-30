@@ -76,3 +76,7 @@ yarn-error.log
 
 .vercel
 .env*.local
+
+# agent-device CLI scratch state and remote profile
+.agent-device/
+remote-config.json
