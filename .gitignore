@@ -76,3 +76,7 @@ yarn-error.log
 
 .vercel
 .env*.local
+
+# agent-device session state and local screenshot scratch
+.agent-device/
+screenshots/
